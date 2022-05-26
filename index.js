@@ -33,13 +33,13 @@ const start = () => {
     }) .then((answer) => {
         switch (answer.Choices) {
             case 'View all Employees':
-                showAll();
+                showAllEmployees();
                 break;
             case 'View all Employees by Department':
-                showByDepartment();
+                showEmployeeByDepartment();
                 break;
             case 'View all Employees by Manager':
-                showByManager();
+                showEmployeeByManager();
                 break;
             case 'Add Employee':
                 addEmployeeQ();
@@ -60,7 +60,7 @@ const start = () => {
                 removeRole();
                 break;
             case 'View all Departments':
-                viewDepartments();
+                viewAllDepartments();
                 break;
             case 'Add Department':
                 addDepartment();
@@ -75,3 +75,49 @@ const start = () => {
     })
 }
 
+// Function to show all employees
+const showAllEmployees = () => {
+    connection.query(employeeQuery, (err, result) => {
+        if (err) throw err;
+        console.log(' ');
+        console.log(('All employees'), result)
+        start();
+    })
+}
+
+// Function to show Employees by Department
+const showEmployeeByDepartment = () => {
+    const departmentQuery = `SELECT * FROM department`;
+
+    connection.query(departmentQuery, (err, result) =>{
+        if (err) throw err;
+
+        inquirer.prompt([
+            {
+                name: 'departmentChoice',
+                type: 'list',
+                choices: function () {
+                    let choiceArray = result.map(choice => choice.department_name)
+                    return choiceArray;
+                },
+                message: 'Select the Department you wish to view:'
+            }
+        ]).then((answer) => {
+            let chosenDepartment;
+            
+            for (let i = 0; i < result.length; i++) {
+                if (result[i].department_name === answer.departmentChoice) {
+                    chosenDepartment = result[i];
+                }
+            }
+
+            const query = `SELECT employee.id, employee.first_name AS "First Name", employee.last_name AS "Last Name", role.title AS "Title", department.department_name AS "Department", role.salary AS "Salary", FROM employee INNER JOIN role ON role.id = employee.role_id INNER JOIN department ON department.id = role.department_id Where ?;`;
+            connection.query(query, { department_name: chosenDepartment_name }, (err, res) => {
+                if (err) throw err;
+                console.log(' ');
+                console.table((`All Employees by Department: ${chosenDepartment_name }`), res)
+                start();
+            })
+        })
+    })
+}
