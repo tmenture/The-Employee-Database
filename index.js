@@ -195,9 +195,7 @@ const addEmployee = () => {
             }
         ]).then((answer) => {
             connection.query(
-                `INSERT INTO employees(first_name, last_name, role_id, manager_id) VALUES(?, ?, 
-                (SELECT id FROM roles WHERE title = ? ), 
-                (SELECT id FROM (SELECT id FROM employees WHERE CONCAT(first_name," ",last_name) = ? ) AS tmptable))`, [answer.fName, answer.lName, answer.role, answer.manager]
+                `INSERT INTO employees(first_name, last_name, role_id, manager_id) VALUES(?, ?, (SELECT id FROM roles WHERE title = ? ), (SELECT id FROM (SELECT id FROM employees WHERE CONCAT(first_name," ",last_name) = ? ) AS tmptable))`, [answer.fName, answer.lName, answer.role, answer.manager]
             )
             start();
         })
@@ -205,3 +203,58 @@ const addEmployee = () => {
 }
 
 // Function to remove employees from database
+const removeEmployee = () => {
+    connection.query(employeeQuery, (err, result) => {
+        if (err) throw err;
+        console.log(' ');
+        console.table(('All Employes'), result)
+
+        inquirer.prompt([
+            {
+                name: 'idRemove',
+                type: 'input',
+                message: 'Enter the employee id of the employee you wish to remove:'
+            }
+        ]).then((answer) => {
+            connection.query(`DELETE FROM employee WHERE ?`, { id: answer.idRemove })
+            start();
+        })
+    })
+}
+
+// Function to update an employees role
+const updateEmployee = () => {
+
+}
+
+// Funciton to view all roles 
+const viewRoles = () => {
+
+}
+
+// Function to add a role to the database
+const addRole = () => {
+
+}
+
+// Function to remove a role from the database
+const removeRole = () => {
+
+}
+
+// Function to view all departments in the database
+const viewAllDepartments = () => {
+
+}
+
+// Function to add a department to the database
+const addDepartment = () => {
+
+}
+
+// Function to remove a department from the database
+const removeDepartment = () => {
+
+}
+
+start();
