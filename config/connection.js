@@ -5,7 +5,7 @@ connection = mysql.createConnection({
     port: 3306,
     user: 'root',
     password: 'MarLey2015!!',
-    database: 'employee_tracker_db',
+    database: 'employee_tracker',
     multipleStatements: true
 });
 
