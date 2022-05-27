@@ -7,7 +7,7 @@ const connection = require('./config/connection');
 const startConsoleView = ['View all Employees', 'View all Emplyees by Department', 'View all Employees by Manager', 'Add Employee', 'Remove Employee', 'Update Employee Role', 'View all Roles', 'Add Role', 'Remove Role', 'View all Departments', 'Add Department', 'Remove Department', 'Exit'];
 
 // Query to retireve all Employees
-const employeeQuery = `SELECT employee_id, employee.first_name AS "First Name", employee.last_name AS "Last Name", roles.title, department.department_name AS "Department", 
+const employeeQuery = `SELECT employee.id, employee.first_name AS "First Name", employee.last_name AS "Last Name", roles.title, department.department_name AS "Department", 
                         IFNULL(roles.salary, "No Data") AS "Salary", CONCAT(m.first_name," ", m.last_name) AS "Manager"
                         FROM employee
                         LEFT JOIN roles
@@ -25,7 +25,7 @@ const roleQ = `SELECT * FROM roles; SELECT CONCAT (employee.first_name," ", empl
 
 // Selects Managers
 const managerQ = `SELECT CONCAT (employee.first_name," ", employee.last_name) AS full_name, roles.title, department.department_name FROM employee 
-                INNER JOIN roles ON roles.id = employee.roles_id INER JOIN department ON department.id = roles.department_id WHERE department_name = "Management";`
+                INNER JOIN roles ON roles.id = employee.roles_id INNER JOIN department ON department.id = roles.department_id WHERE department_name = "Management";`
 
 const start = () => {
     inquirer.prompt({
@@ -83,14 +83,14 @@ const showAllEmployees = () => {
     connection.query(employeeQuery, (err, result) => {
         if (err) throw err;
         console.log(' ');
-        console.log(('All employees'), result)
+        console.table(('All employees'), result)
         start();
     })
 }
 
 // Function to run query and show Employees by Department
 const showEmployeeByDepartment = () => {
-    const departmentQuery = `SELECT * FROM department`;
+    const departmentQuery = `SELECT * FROM department;`;
 
     connection.query(departmentQuery, (err, result) =>{
         if (err) throw err;
@@ -317,7 +317,7 @@ const addRole = () => {
 
 // Function to run query and remove a role from the database
 const removeRole = () => {
-    query = `SELECT * FROM roles`;
+    const query = `SELECT * FROM roles`;
     
     connection.query(query, (err, result) => {
         if (err) throw err;
@@ -327,7 +327,7 @@ const removeRole = () => {
                 name: 'remRole',
                 type: 'list',
                 choices: function () {
-                    let choiceArray = result.map(chocie =>choice.title);
+                    let choiceArray = result.map(choice => choice.title);
                     return choiceArray;
                 },
                 message: 'Select the role you want to remove:'
@@ -341,7 +341,7 @@ const removeRole = () => {
 
 // Function to run query and view all departments in the database
 const viewAllDepartments = () => {
-    query = `SELECT department_name AS "Department" FROM department`;
+   const query = `SELECT department_name AS "Department" FROM department`;
     connection.query(query, (err, result) => {
         if (err) throw err;
 
@@ -353,12 +353,49 @@ const viewAllDepartments = () => {
 
 // Function to run query and add a department to the database
 const addDepartment = () => {
+    const query = `SELECT department_name AS "Department" FROM department`;
 
+    connection.query(query, (err, result) => {
+        if (err) throw err;
+
+        console.log(' ');
+        console.table(('List of current Departments:'), result);
+
+        inquirer.prompt([
+            {
+                name: 'nDept',
+                type: 'input',
+                message: 'Enter the name of the new Department:'
+            }
+        ]).then((answer) => {
+            connection.query(`INSERT INTO department(department_name) VALUES( ? )`, answer.nDept)
+            start();
+        })
+    })
 }
 
 // Function to run query and remove a department from the database
 const removeDepartment = () => {
+    const query = `SELECT * FROM department`;
 
+    connection.query(query, (err, result) => {
+        if (err) throw err;
+
+        inquirer.prompt([
+            {
+                name: 'department',
+                type: 'list',
+                choices: function () {
+                    let choiceArray = result.map(choice => choice.department_name);
+                    return choiceArray;
+                },
+                message: 'Select the Department you woule like to remove:'
+            }
+        ]).then((answer) => {
+            connection.query(`DELETE FROM department WHERE ?`, { department_name: answer.deparment })
+            start();
+        })
+    })
 }
 
 start();
