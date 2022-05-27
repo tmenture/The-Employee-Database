@@ -7,7 +7,8 @@ const connection = require('./config/connection');
 const startConsoleView = ['View all Employees', 'View all Emplyees by Department', 'View all Employees by Manager', 'Add Employee', 'Remove Employee', 'Update Employee Role', 'View all Roles', 'Add Role', 'Remove Role', 'View all Departments', 'Add Department', 'Remove Department', 'Exit'];
 
 // Query to retireve all Employees
-const employeeQuery = `SELECT employee_id, employee.first_name AS "First Name", employee.last_name AS "Last Name", role.title, department.department_name AS "Department", IFNULL(role.salary, "No Data") AS "Salary", CONCAT(m.first_name," ", m.lsat_name) AS "Manager"
+const employeeQuery = `SELECT employee_id, employee.first_name AS "First Name", employee.last_name AS "Last Name", role.title, department.department_name AS "Department", 
+                        IFNULL(role.salary, "No Data") AS "Salary", CONCAT(m.first_name," ", m.lsat_name) AS "Manager"
                         FROM employee
                         LEFT JOIN role
                         ON role.id = employee.role_id
@@ -23,7 +24,8 @@ const addEmployeeQuestions = ['What is employees first name?', 'What is the empl
 const roleQ = `SELECT * FROM roles; SELECT CONCAT (employee.first_name," ", employee.last_name) AS full_name FROM employee;`
 
 // Selects Managers
-const managerQ = `SELECT CONCAT (employee.first_name," ", employee.last_name) AS full_name, role.title, department.department_name FROM employee INNER JOIN role ON role.id = employee.role_id INER JOIN department ON department.id = role.department_id WHERE department_name = "Management";`
+const managerQ = `SELECT CONCAT (employee.first_name," ", employee.last_name) AS full_name, role.title, department.department_name FROM employee 
+                INNER JOIN role ON role.id = employee.role_id INER JOIN department ON department.id = role.department_id WHERE department_name = "Management";`
 
 const start = () => {
     inquirer.prompt({
@@ -112,7 +114,9 @@ const showEmployeeByDepartment = () => {
                 }
             }
 
-            const query = `SELECT employee.id, employee.first_name AS "First Name", employee.last_name AS "Last Name", role.title AS "Title", department.department_name AS "Department", role.salary AS "Salary", FROM employee INNER JOIN role ON role.id = employee.role_id INNER JOIN department ON department.id = role.department_id Where ?;`;
+            const query = `SELECT employee.id, employee.first_name AS "First Name", employee.last_name AS "Last Name", role.title AS "Title", 
+                        department.department_name AS "Department", role.salary AS "Salary", FROM employee INNER JOIN role ON role.id = employee.role_id 
+                        INNER JOIN department ON department.id = role.department_id Where ?;`;
             connection.query(query, { department_name: chosenDepartment_name }, (err, res) => {
                 if (err) throw err;
                 console.log(' ');
@@ -139,7 +143,8 @@ const showEmployeeByManager = () => {
                 message: 'Select the Manager whos staff you wish to see:'
             }
         ]).then((answer) => {
-            const managerQ2 = `SELECT employee.id, employee.first_name AS "First Name", employee.last_name AS "Last Name", IFNULL(role.title, "No Data") AS "Title", IFNULL(department.department_name, "No Data") AS "Department", IFNULL(role.salary, "No Data") AS "Salary", CONCAT(m.first_name," ",m.last_name) AS "MAnager"
+            const managerQ2 = `SELECT employee.id, employee.first_name AS "First Name", employee.last_name AS "Last Name", IFNULL(role.title, "No Data") AS "Title", 
+                                IFNULL(department.department_name, "No Data") AS "Department", IFNULL(role.salary, "No Data") AS "Salary", CONCAT(m.first_name," ",m.last_name) AS "MAnager"
                                 FROM employee
                                 LEFT JOIN role
                                 ON role.id = employee.role_id
@@ -195,7 +200,8 @@ const addEmployee = () => {
             }
         ]).then((answer) => {
             connection.query(
-                `INSERT INTO employees(first_name, last_name, role_id, manager_id) VALUES(?, ?, (SELECT id FROM roles WHERE title = ? ), (SELECT id FROM (SELECT id FROM employees WHERE CONCAT(first_name," ",last_name) = ? ) AS tmptable))`, [answer.fName, answer.lName, answer.role, answer.manager]
+                `INSERT INTO employees(first_name, last_name, role_id, manager_id) VALUES(?, ?, (SELECT id FROM roles WHERE title = ? ), 
+                (SELECT id FROM (SELECT id FROM employees WHERE CONCAT(first_name," ",last_name) = ? ) AS tmptable))`, [answer.fName, answer.lName, answer.role, answer.manager]
             )
             start();
         })
@@ -270,17 +276,79 @@ const viewRoles = () => {
 
 // Function to run query and add a role to the database
 const addRole = () => {
+    const query = `SELECT * FROM role; SELECT * From department`
 
+    connection.query(query, (err, result) => {
+        if (err) throw err;
+
+        console.log(' ');
+        console.table(('List of current Roles:'), result[0]);
+
+        inquirer.prompt([
+            {
+                name: 'nTitle',
+                type: 'input',
+                message: 'Enter the title of the role you want to add:'
+            },
+            {
+                name: 'nSalary',
+                type: 'input',
+                message: 'Enter the salary for the new role:'
+            },
+            {
+                name: 'dept',
+                type: 'list',
+                choices: function () {
+                    let choiceArray = results[1].map(choice => choice.department_name);
+                    return choiceArray;
+                },
+                message: 'Select the department for the new role:'
+            }
+        ]).then((answer) => {
+            connection.query(
+                `INSERT INTO role(title, salary, department_id)
+                VALUES
+                ("${answer.nTitle}", "${answer.nSalary}", (SELECT id FROM department WHERE department_name = "${answer.dept}"));`
+            )
+            start();
+        })
+    })
 }
 
 // Function to run query and remove a role from the database
 const removeRole = () => {
+    query = `SELECT * FROM role`;
+    
+    connection.query(query, (err, result) => {
+        if (err) throw err;
 
+        inquirer.prompt([
+            {
+                name: 'remRole',
+                type: 'list',
+                choices: function () {
+                    let choiceArray = result.map(chocie =>choice.title);
+                    return choiceArray;
+                },
+                message: 'Select the role you want to remove:'
+            }
+        ]).then((answer) => {
+            connection.query(`DELETE FROM role WHERE ?`, { title: answer.remRole });
+            start();
+        })
+    })
 }
 
 // Function to run query and view all departments in the database
 const viewAllDepartments = () => {
+    query = `SELECT department_name AS "Department" FROM department`;
+    connection.query(query, (err, result) => {
+        if (err) throw err;
 
+        console.log(' ');
+        console.table(('All Departments listed:'), result)
+        start();
+    })
 }
 
 // Function to run query and add a department to the database
