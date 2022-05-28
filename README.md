@@ -10,7 +10,7 @@
 * Then type node server.js into the console to start the application and interact with the database
 
     ### If you run into issues try:
-    * Running mysql -u <username> -p (in the console)
+    * Running mysql -u <>your username<> -p (in the console)
     * Enter your password
     * Once in mysql console type:
         - source db/schema.sql
