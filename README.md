@@ -11,13 +11,16 @@
 https://youtu.be/5d2UiGqSxCY
 
 ## Purpose:
-To create a database for easy tracking of departments, roles, employees, and salarys.
+To create a database for easy tracking of departments, roles, employees, and salaries.
 
 ## Built with:
 * Node.js
+    - console.table
+    - inquirer
+    - msql2
 * JavaScript
 * SQL 
 
 ## Made By:
-Thomas Menture
-    - Contact at: thomasoxemail@gmail.com
+#### Thomas Menture
+- Contact at: thomasoxemail@gmail.com
